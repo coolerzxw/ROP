@@ -21,7 +21,7 @@ namespace rop {
 		void host_to_network() {
 			len_op = htons(len_op);
 			len_res = htons(len_res);
-			len_detail = htons(len_detail);
+			len_detail = htonl(len_detail);
 		}
 
 	};
