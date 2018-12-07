@@ -24,13 +24,23 @@ namespace rop {
 		buffers[1] = boost::asio::buffer(operation);
 		buffers[2] = boost::asio::buffer(resource);
 		buffers[3] = boost::asio::buffer(detail);
-		boost::asio::write(peer_, buffers);
+		boost::system::error_code error;
+		boost::asio::write(peer_, buffers, error);
+		if (error) {
+			throw std::runtime_error("request write error: " + error.message());
+		}
 		response_header res_header;
-		boost::asio::read(peer_, boost::asio::buffer(&res_header, sizeof(res_header)));
+		boost::asio::read(peer_, boost::asio::buffer(&res_header, sizeof(res_header)), error);
+		if (error) {
+			throw std::runtime_error("response header read error: " + error.message());
+		}
 		res_header.network_to_host();
 		std::string result;
 		result.resize(res_header.len_result);
-		boost::asio::read(peer_, boost::asio::buffer(result));
+		boost::asio::read(peer_, boost::asio::buffer(result), error);
+		if (error) {
+			throw std::runtime_error("response body read error: " + error.message());
+		}
 		return std::make_pair(res_header.error_code, std::move(result));
 	}
 
