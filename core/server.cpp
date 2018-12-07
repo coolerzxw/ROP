@@ -30,19 +30,19 @@ namespace rop {
 						delete this;
 					} else {
 						response_header header = {0, 0};
-						std::string output;
+						std::string result;
 						try {
-							output = server_.process_(operation_, resource_, detail_, data_);
+							result = server_.process_(operation_, resource_, detail_, data_);
 							header.error_code = 0;
 						} catch (std::exception& e) {
-							output = e.what();
+							result = e.what();
 							header.error_code = 1;
 						}
-						header.len_response = output.size();
+						header.len_result = result.size();
 						header.host_to_network();
 						std::array<boost::asio::const_buffer, 2> buffers;
 						buffers[0] = boost::asio::buffer(&header, sizeof(header));
-						buffers[1] = boost::asio::buffer(output);
+						buffers[1] = boost::asio::buffer(result);
 						boost::system::error_code error;
 						boost::asio::write(peer_, buffers, error);
 						if (error) {

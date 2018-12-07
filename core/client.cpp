@@ -28,10 +28,10 @@ namespace rop {
 		response_header res_header;
 		boost::asio::read(peer_, boost::asio::buffer(&res_header, sizeof(res_header)));
 		res_header.network_to_host();
-		std::string response;
-		response.resize(res_header.len_response);
-		boost::asio::read(peer_, boost::asio::buffer(response));
-		return std::make_pair(res_header.error_code, std::move(response));
+		std::string result;
+		result.resize(res_header.len_result);
+		boost::asio::read(peer_, boost::asio::buffer(result));
+		return std::make_pair(res_header.error_code, std::move(result));
 	}
 
 	client::client():

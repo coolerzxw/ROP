@@ -31,16 +31,16 @@ namespace rop {
 	struct response_header {
 
 		uint32_t error_code;
-		uint32_t len_response;
+		uint32_t len_result;
 
 		void network_to_host() {
 			error_code = ntohs(error_code);
-			len_response = ntohs(len_response);
+			len_result = ntohs(len_result);
 		}
 
 		void host_to_network() {
 			error_code = htons(error_code);
-			len_response = htons(len_response);
+			len_result = htons(len_result);
 		}
 
 	};
