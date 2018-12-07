@@ -15,7 +15,7 @@
 
 namespace rop {
 
-	std::string noop(const std::string& operation, const std::string& resource, const std::string& detail);
+	std::string noop(const std::string& operation, const std::string& resource, const std::string& detail, std::string& session_data);
 
 	class server {
 
@@ -30,6 +30,7 @@ namespace rop {
 			std::string operation_;
 			std::string resource_;
 			std::string detail_;
+			std::string data_;
 
 			void do_handle();
 
@@ -42,17 +43,20 @@ namespace rop {
 		boost::asio::ip::tcp::endpoint endpoint_;
 		boost::asio::ip::tcp::acceptor acceptor_;
 		std::vector<std::thread> io_threads_;
-		std::function<std::string(const std::string&, const std::string&, const std::string&)> process_;
+		std::function<std::string(const std::string&, const std::string&, const std::string&, std::string&)> process_;
 
 		void do_accept();
 
 	public:
 
-		server(const std::string& host, uint16_t port, uint32_t num_threads = 0, const std::function<std::string(const std::string&, const std::string&, const std::string&)>& process = noop);
+		server(
+			const std::string& host,
+			uint16_t port,
+			uint32_t num_threads = 0,
+			const std::function<std::string(const std::string&, const std::string&, const std::string&, std::string&)>& process = noop
+		);
 
 		~server();
-
-		void reset_handler(const std::function<std::string(const std::string&, const std::string&, const std::string&)>& process);
 
 	};
 

@@ -7,7 +7,7 @@
 
 namespace rop {
 
-	std::string noop(const std::string& operation, const std::string& resource, const std::string& detail) {
+	std::string noop(const std::string& operation, const std::string& resource, const std::string& detail, std::string& session_data) {
 		return "";
 	}
 
@@ -32,7 +32,7 @@ namespace rop {
 						response_header header = {0, 0};
 						std::string output;
 						try {
-							output = server_.process_(operation_, resource_, detail_);
+							output = server_.process_(operation_, resource_, detail_, data_);
 							header.error_code = 0;
 						} catch (std::exception& e) {
 							output = e.what();
@@ -64,9 +64,9 @@ namespace rop {
 		buffers_(),
 		operation_(),
 		resource_(),
-		detail_()
+		detail_(),
+		data_()
 	{
-		// TODO: peer authentication
 		do_handle();
 	}
 
@@ -81,7 +81,10 @@ namespace rop {
 		});
 	}
 
-	server::server(const std::string& host, uint16_t port, uint32_t num_threads, const std::function<std::string(const std::string&, const std::string&, const std::string&)>& process):
+	server::server(
+		const std::string& host, uint16_t port, uint32_t num_threads,
+		const std::function<std::string(const std::string&, const std::string&, const std::string&, std::string&)>& process
+	):
 		io_service_(),
 		signals_(io_service_, SIGINT),
 		endpoint_(boost::asio::ip::address::from_string(host), port),
@@ -112,10 +115,6 @@ namespace rop {
 		for (auto& io_thread : io_threads_) {
 			io_thread.join();
 		}
-	}
-
-	void server::reset_handler(const std::function<std::string(const std::string&, const std::string&, const std::string&)>& process) {
-		process_ = process;
 	}
 
 }
