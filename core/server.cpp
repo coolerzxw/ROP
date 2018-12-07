@@ -12,45 +12,42 @@ namespace rop {
 	}
 
 	void server::session::do_handle() {
-		boost::asio::async_read(peer_, boost::asio::buffer(&header_, sizeof(header_)), [&](const boost::system::error_code& error, size_t length){
+		boost::asio::async_read(peer_, boost::asio::buffer(&req_header_, sizeof(req_header_)), [&](const boost::system::error_code& error, size_t length){
 			if (error) {
 				fprintf(stderr, "request header read error: %s\n", error.message().c_str());
 				delete this;
 			} else {
-				header_.network_to_host();
-				operation_.resize(header_.len_op);
-				resource_.resize(header_.len_res);
-				detail_.resize(header_.len_detail);
-				buffers_[0] = boost::asio::buffer(operation_);
-				buffers_[1] = boost::asio::buffer(resource_);
-				buffers_[2] = boost::asio::buffer(detail_);
-				boost::asio::async_read(peer_, buffers_, [&](const boost::system::error_code& error, size_t length){
+				req_header_.network_to_host();
+				operation_.resize(req_header_.len_op);
+				resource_.resize(req_header_.len_res);
+				detail_.resize(req_header_.len_detail);
+				req_buffers_[0] = boost::asio::buffer(operation_);
+				req_buffers_[1] = boost::asio::buffer(resource_);
+				req_buffers_[2] = boost::asio::buffer(detail_);
+				boost::asio::async_read(peer_, req_buffers_, [&](const boost::system::error_code& error, size_t length){
 					if (error) {
 						fprintf(stderr, "request body read error: %s\n", error.message().c_str());
 						delete this;
 					} else {
-						response_header header = {0, 0};
-						std::string result;
 						try {
-							result = server_.process_(operation_, resource_, detail_, data_);
-							header.error_code = 0;
+							result_ = server_.process_(operation_, resource_, detail_, data_);
+							res_header_.error_code = 0;
 						} catch (std::exception& e) {
-							result = e.what();
-							header.error_code = 1;
+							result_ = e.what();
+							res_header_.error_code = 1;
 						}
-						header.len_result = result.size();
-						header.host_to_network();
-						std::array<boost::asio::const_buffer, 2> buffers;
-						buffers[0] = boost::asio::buffer(&header, sizeof(header));
-						buffers[1] = boost::asio::buffer(result);
-						boost::system::error_code error;
-						boost::asio::write(peer_, buffers, error);
-						if (error) {
-							fprintf(stderr, "response write error: %s\n", error.message().c_str());
-							delete this;
-						} else {
-							do_handle();
-						}
+						res_header_.len_result = result_.size();
+						res_header_.host_to_network();
+						res_buffers_[0] = boost::asio::buffer(&res_header_, sizeof(res_header_));
+						res_buffers_[1] = boost::asio::buffer(result_);
+						boost::asio::async_write(peer_, res_buffers_, [&](const boost::system::error_code& error, size_t length){
+							if (error) {
+								fprintf(stderr, "response write error: %s\n", error.message().c_str());
+								delete this;
+							} else {
+								do_handle();
+							}
+						});
 					}
 				});
 			}
@@ -60,12 +57,15 @@ namespace rop {
 	server::session::session(server& server, boost::asio::ip::tcp::socket& peer):
 		server_(server),
 		peer_(std::move(peer)),
-		header_({0, 0, 0}),
-		buffers_(),
+		req_buffers_(),
+		req_header_({0, 0, 0}),
 		operation_(),
 		resource_(),
 		detail_(),
-		data_()
+		data_(),
+		res_buffers_(),
+		res_header_({0, 0}),
+		result_()
 	{
 		do_handle();
 	}
