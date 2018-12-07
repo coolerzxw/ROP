@@ -34,13 +34,13 @@ namespace rop {
 		uint32_t len_result;
 
 		void network_to_host() {
-			error_code = ntohs(error_code);
-			len_result = ntohs(len_result);
+			error_code = ntohl(error_code);
+			len_result = ntohl(len_result);
 		}
 
 		void host_to_network() {
-			error_code = htons(error_code);
-			len_result = htons(len_result);
+			error_code = htonl(error_code);
+			len_result = htonl(len_result);
 		}
 
 	};
