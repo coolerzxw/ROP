@@ -21,7 +21,6 @@ namespace rop {
 				operation_.resize(header_.len_op);
 				resource_.resize(header_.len_res);
 				detail_.resize(header_.len_detail);
-				// with c++17 we can eliminate forced conversions
 				buffers_[0] = boost::asio::buffer(operation_);
 				buffers_[1] = boost::asio::buffer(resource_);
 				buffers_[2] = boost::asio::buffer(detail_);
@@ -44,8 +43,14 @@ namespace rop {
 						std::array<boost::asio::const_buffer, 2> buffers;
 						buffers[0] = boost::asio::buffer(&header, sizeof(header));
 						buffers[1] = boost::asio::buffer(output);
-						boost::asio::write(peer_, buffers);
-						do_handle();
+						boost::system::error_code error;
+						boost::asio::write(peer_, buffers, error);
+						if (error) {
+							fprintf(stderr, "write error: %s\n", error.message().c_str());
+							delete this;
+						} else {
+							do_handle();
+						}
 					}
 				});
 			}
@@ -69,9 +74,9 @@ namespace rop {
 		acceptor_.async_accept([&](const boost::system::error_code& error, boost::asio::ip::tcp::socket peer){
 			if (error) {
 				fprintf(stderr, "accept error: %s\n", error.message().c_str());
-				return;
+			} else {
+				new session(*this, peer);
 			}
-			new session(*this, peer);
 			do_accept();
 		});
 	}
