@@ -25,12 +25,15 @@ namespace rop {
 
 			server& server_;
 			boost::asio::ip::tcp::socket peer_;
-			request_header header_;
-			std::array<boost::asio::mutable_buffer, 3> buffers_;
+			std::array<boost::asio::mutable_buffer, 3> req_buffers_;
+			request_header req_header_;
 			std::string operation_;
 			std::string resource_;
 			std::string detail_;
 			std::string data_;
+			std::array<boost::asio::const_buffer, 2> res_buffers_;
+			response_header res_header_;
+			std::string result_;
 
 			void do_handle();
 
