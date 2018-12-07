@@ -16,3 +16,5 @@ Each response contains the following parts:
   - Error code (32-bit integer)
   - Length of Result (32-bit integer)
 - Result (length < 4GB)
+
+Each session corresponds to a conversation between a client and the server, and the server may maintain states for each session.
