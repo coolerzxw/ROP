@@ -52,6 +52,18 @@ namespace rop {
 
 	public:
 
+		/**
+		 * \param    host           The address to bind.
+		 * \param    port           The port to bind.
+		 * \param    num_threads    The number of threads to use.
+		 * \param    process        The request handler. The first three parameters
+		 * correspond to the operation, resource, and detail of the desired request.
+		 * The last parameter is the mutable session data which can be used to maintain
+		 * session-local states. Exceptions can be thrown within the handler, and the
+		 * response result is specified through the return value.
+		 *
+		 * \return                  The response result.
+		 */
 		server(
 			const std::string& host,
 			uint16_t port,
