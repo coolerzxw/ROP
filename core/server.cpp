@@ -14,7 +14,9 @@ namespace rop {
 	void server::session::do_handle() {
 		boost::asio::async_read(peer_, boost::asio::buffer(&req_header_, sizeof(req_header_)), [&](const boost::system::error_code& error, size_t length){
 			if (error) {
-				fprintf(stderr, "request header read error: %s\n", error.message().c_str());
+				if (error != boost::asio::error::eof) {
+					fprintf(stderr, "request header read error: %s\n", error.message().c_str());
+				}
 				delete this;
 			} else {
 				req_header_.network_to_host();
